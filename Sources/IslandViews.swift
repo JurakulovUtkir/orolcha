@@ -11,7 +11,8 @@ enum Palette {
     static let tertiary = Color.white.opacity(0.34)
 }
 
-let islandSpring = Animation.spring(response: 0.42, dampingFraction: 0.8)
+/// Biroz "sakraydigan" prujina — iPhone'dagi Dynamic Island hissi.
+let islandSpring = Animation.spring(response: 0.46, dampingFraction: 0.76)
 
 struct BlurFade: ViewModifier {
     let active: Bool
@@ -48,7 +49,7 @@ struct IslandRootView: View {
         let mode = model.mode
         let g = model.geometry
         let size = g.frame(mode)
-        let shape = NotchShape(top: g.topRadius(mode), bottom: g.bottomRadius(mode))
+        let shape = g.shape(mode)
         VStack(spacing: 0) {
             ZStack(alignment: .top) {
                 Color.black
@@ -56,12 +57,18 @@ struct IslandRootView: View {
             }
             .frame(width: size.width, height: size.height, alignment: .top)
             .clipShape(shape)
+            .overlay(
+                // Kapsula qora fonda ham ko'rinib tursin — juda nozik chegara.
+                shape.stroke(Color.white.opacity(g.isPill ? 0.09 : 0), lineWidth: 0.75)
+            )
             .background(
                 shape.fill(Color.black)
-                    .shadow(color: .black.opacity(mode == .expanded ? 0.5 : (mode == .peek ? 0.3 : 0)), radius: 18, x: 0, y: 8)
+                    .shadow(color: .black.opacity(mode == .expanded ? 0.5 : (mode == .peek ? 0.3 : (g.isPill ? 0.25 : 0))),
+                            radius: mode == .idle || mode == .live ? 6 : 18, x: 0, y: mode == .idle || mode == .live ? 2 : 8)
             )
             .contentShape(shape)
             .onTapGesture { if model.mode != .expanded { model.expand() } }
+            .padding(.top, g.topInset)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -96,9 +103,9 @@ struct LiveStrip: View {
     var body: some View {
         let h = g.m.notch.height
         HStack(spacing: 0) {
-            ZStack { left }.frame(width: g.slot, height: h)
-            Color.clear.frame(width: g.m.notch.width, height: h)
-            ZStack { right }.frame(width: g.slot, height: h)
+            ZStack { left }.frame(width: g.slot, height: h).offset(x: g.isPill ? 3 : 0)
+            Color.clear.frame(width: g.liveGap, height: h)
+            ZStack { right }.frame(width: g.slot, height: h).offset(x: g.isPill ? -3 : 0)
         }
         .frame(width: g.body(.live).width, height: h)
         .animation(islandSpring, value: music.isPlaying)
@@ -107,7 +114,8 @@ struct LiveStrip: View {
 
     @ViewBuilder private var left: some View {
         if music.isPlaying {
-            ArtworkView(image: music.artwork, size: g.m.notch.height - (g.m.hasNotch ? 11 : 7), corner: g.m.hasNotch ? 6 : 4.5)
+            let size = g.m.notch.height - (g.isPill ? 7 : (g.m.hasNotch ? 11 : 7))
+            ArtworkView(image: music.artwork, size: size, corner: g.isPill ? size / 2 : (g.m.hasNotch ? 6 : 4.5))
                 .transition(.blurFade)
         } else if let s = claude.primary {
             ClaudeGlyph(state: s.state).frame(width: 17, height: 17).transition(.blurFade)
@@ -162,7 +170,7 @@ struct PeekView: View {
     var body: some View {
         let size = g.body(.peek)
         VStack(spacing: 0) {
-            Color.clear.frame(height: g.m.notch.height)
+            if !g.isPill { Color.clear.frame(height: g.m.notch.height) }
             HStack(spacing: 11) {
                 ZStack {
                     Circle().fill(tint.opacity(0.18))
@@ -185,8 +193,8 @@ struct PeekView: View {
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 22)
-            .frame(height: IslandGeometry.peekContent - 8)
+            .padding(.horizontal, g.isPill ? 16 : 22)
+            .frame(height: g.isPill ? size.height : IslandGeometry.peekContent - 8)
         }
         .frame(width: size.width, height: size.height, alignment: .top)
     }
@@ -218,7 +226,8 @@ struct ExpandedView: View {
     @ObservedObject var calendar: CalendarModel
 
     var body: some View {
-        let nH = g.m.notch.height
+        let header = g.headerHeight
+        let total = g.body(.expanded).height
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 TimelineView(.everyMinute) { tl in
@@ -226,7 +235,7 @@ struct ExpandedView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Palette.text.opacity(0.9))
                 }
-                Spacer(minLength: g.m.notch.width + 24)
+                Spacer(minLength: g.isPill ? 20 : g.m.notch.width + 24)
                 HStack(spacing: 8) {
                     if claude.activeCount > 0 {
                         HStack(spacing: 5) {
@@ -245,8 +254,9 @@ struct ExpandedView: View {
                     .buttonStyle(PressStyle())
                 }
             }
-            .padding(.horizontal, 24)
-            .frame(height: nH)
+            .padding(.horizontal, g.isPill ? 30 : 24)
+            .padding(.top, g.isPill ? 6 : 0)
+            .frame(height: header)
 
             HStack(alignment: .top, spacing: 18) {
                 MusicCard(music: music).frame(width: 292, alignment: .leading)
@@ -257,11 +267,11 @@ struct ExpandedView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .padding(.horizontal, 26)
-            .padding(.top, 12)
-            .frame(height: IslandGeometry.expandedContent, alignment: .top)
+            .padding(.horizontal, g.isPill ? 28 : 26)
+            .padding(.top, g.isPill ? 6 : 12)
+            .frame(height: total - header, alignment: .top)
         }
-        .frame(width: IslandGeometry.expandedWidth, height: nH + IslandGeometry.expandedContent, alignment: .top)
+        .frame(width: IslandGeometry.expandedWidth, height: total, alignment: .top)
     }
 }
 

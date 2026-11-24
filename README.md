@@ -1,7 +1,7 @@
 # Orolcha
 
-**Mac uchun Dynamic Island** — notch atrofida musiqa, Claude Code holati va kalendar.
-Notch'siz ekranda (tashqi monitor) menyu panel o'rtasida soxta notch bo'lib turadi.
+**Mac uchun Dynamic Island** — musiqa, Claude Code holati va kalendar.
+Tashqi monitorda iPhone'dagidek menyu panel o'rtasida suzib turgan kapsula, MacBook'da esa notch'ning o'zidan o'sib chiqadi.
 
 [English below](#english)
 
@@ -10,6 +10,8 @@ Notch'siz ekranda (tashqi monitor) menyu panel o'rtasida soxta notch bo'lib tura
 | Musiqa chalinmoqda | Claude ishlamoqda / javob kutmoqda | Qisqa xabar |
 |---|---|---|
 | <img src="docs/music.png" width="260"> | <img src="docs/claude.png" width="260"> | <img src="docs/peek.png" width="260"> |
+
+MacBook notch'ida: <img src="docs/notch.png" width="300" alt="Notch uslubi">. Tashqi monitorda ham notch ko'rinishini xohlasangiz: menyu → «Notch koʻrinishi».
 
 ## Nimalar bor
 
@@ -70,7 +72,7 @@ MIT — [LICENSE](LICENSE).
 
 ## English
 
-**Orolcha** ("little island" in Uzbek) is a Dynamic Island for the Mac. It lives around the notch, or as a pill in the menu bar on displays without one, and shows:
+**Orolcha** ("little island" in Uzbek) is a Dynamic Island for the Mac. On external displays it floats as an iPhone-style pill in the middle of the menu bar; on a MacBook it grows out of the notch itself. It shows:
 
 - **Now playing** from any player (Yandex Music, Spotify, Apple Music, browsers, Telegram voice notes): artwork, an animated waveform tinted from the cover, controls and a scrubbable progress bar.
 - **Claude Code sessions** via hooks: working (current tool or file and elapsed time), waiting for permission, finished. The island pops open briefly when a session finishes or needs you. Clicking a row brings its app (Claude, Terminal, Warp, VS Code…) forward.

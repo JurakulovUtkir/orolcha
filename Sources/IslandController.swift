@@ -58,7 +58,8 @@ final class IslandController {
     private let defaults = UserDefaults.standard
 
     init() {
-        model = IslandModel(metrics: ScreenMetrics.make(for: NSScreen.screens.first ?? NSScreen.main!))
+        model = IslandModel(metrics: ScreenMetrics.make(for: NSScreen.screens.first ?? NSScreen.main!,
+                                                        preferNotchLook: UserDefaults.standard.bool(forKey: "notchLook")))
     }
 
     func start() {
@@ -109,7 +110,7 @@ final class IslandController {
 
     private func place() {
         let screen = chooseScreen()
-        let m = ScreenMetrics.make(for: screen)
+        let m = ScreenMetrics.make(for: screen, preferNotchLook: defaults.bool(forKey: "notchLook"))
         if m != model.metrics { model.metrics = m }
         let f = screen.frame
         let w = Self.windowSize.width, h = Self.windowSize.height
@@ -123,8 +124,9 @@ final class IslandController {
         let s = model.geometry.frame(mode)
         let f = model.metrics.frame
         let pad: CGFloat = mode == .expanded ? 14 : 6
-        return NSRect(x: f.midX - s.width / 2 - pad, y: f.maxY - s.height - pad,
-                      width: s.width + 2 * pad, height: s.height + pad + 2)
+        let inset = model.geometry.topInset
+        return NSRect(x: f.midX - s.width / 2 - pad, y: f.maxY - inset - s.height - pad,
+                      width: s.width + 2 * pad, height: inset + s.height + pad + 2)
     }
 
     private func trackMouse() {
@@ -171,6 +173,13 @@ final class IslandController {
             let on = defaults.bool(forKey: "preferMainScreen")
             menu.addItem(BlockMenuItem("Asosiy ekranda koʻrsatish", checked: on) { [weak self] in
                 self?.defaults.set(!on, forKey: "preferMainScreen")
+                self?.place()
+            })
+        }
+        if !model.metrics.hasNotch {
+            let notchLook = defaults.bool(forKey: "notchLook")
+            menu.addItem(BlockMenuItem("Notch koʻrinishi (kapsula oʻrniga)", checked: notchLook) { [weak self] in
+                self?.defaults.set(!notchLook, forKey: "notchLook")
                 self?.place()
             })
         }

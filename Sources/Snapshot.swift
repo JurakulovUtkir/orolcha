@@ -16,8 +16,11 @@ enum Snapshot {
         let backdrop = LinearGradient(colors: [Color(red: 0.32, green: 0.38, blue: 0.72), Color(red: 0.78, green: 0.46, blue: 0.62)],
                                       startPoint: .topLeading, endPoint: .bottomTrailing)
         for notch in [true, false] {
-            let metrics = ScreenMetrics(notch: notch ? CGSize(width: 185, height: 32) : CGSize(width: 168, height: 24),
-                                        hasNotch: notch, frame: CGRect(x: 0, y: 0, width: 1512, height: 982))
+            let metrics = notch
+                ? ScreenMetrics(notch: CGSize(width: 185, height: 32), hasNotch: true,
+                                frame: CGRect(x: 0, y: 0, width: 1512, height: 982), menuBar: 32, style: .notch)
+                : ScreenMetrics(notch: CGSize(width: 108, height: 24), hasNotch: false,
+                                frame: CGRect(x: 0, y: 0, width: 1920, height: 1080), menuBar: 30, style: .pill)
             for mode in ["idle", "music", "live", "claude", "peek", "expanded", "empty"] {
                 let model = IslandModel(metrics: metrics)
                 if mode != "empty" { model.demo(mode) }
